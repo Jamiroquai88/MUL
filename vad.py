@@ -42,3 +42,4 @@ class VAD(object):
             self.sil_len = silence_len
         except ValueError:
             return None
+        return []

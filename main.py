@@ -42,7 +42,7 @@ class MyForm(QtGui.QMainWindow):
                 self.ShowInformationDialog('Can not process input file!')
         else:
             self.ShowInformationDialog(
-                'Please, set input file and appropriate level.')
+                'Please, set input file and appropriate level and length.')
 
     def ShowInformationDialog(self, text):
         ''' Show simple information dialog.
