@@ -15,6 +15,8 @@ class MyForm(QtGui.QMainWindow):
         self.ui.setupUi(self)
         self.ui.browseButton.clicked.connect(self.HandleBrowseButton)
         self.ui.processButton.clicked.connect(self.HandleProcessButton)
+        self.ui.levelBox.setValue(0.6)
+        self.ui.lengthBox.setValue(5)
         # VAD class
         self.vad = VAD()
         # Class members
@@ -53,8 +55,6 @@ class MyForm(QtGui.QMainWindow):
         msg.setText(text)
         msg.setStandardButtons(QtGui.QMessageBox.Ok)
         msg.exec_()
-
-
 
 
 if __name__ == "__main__":
