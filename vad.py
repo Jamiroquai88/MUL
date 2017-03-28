@@ -79,7 +79,7 @@ class VAD(object):
         sil_start = 0
         sil_amount = 0
         sil_frames = []
-        n_songs = 0
+        n_sil = 0
         print 'Frames shape', frames.shape
         for f in frames:
             # print 'Sil start', sil_start, 'Sil amount', sil_amount
@@ -92,14 +92,18 @@ class VAD(object):
                     sil_amount += self.frame_overlap
             else:
                 if sil_amount > self.sil_len:
-                    sil_frames.append([n_songs, sil_start, sil_amount])
-                    n_songs += 1
+                    sil_frames.append([n_sil, sil_start, sil_amount])
+                    n_sil += 1
                 sil_start = 0
                 sil_amount = 0
         # Check if there was silence at the end
-        if sil_amount > self.sil_len and n_songs > 0:
-            sil_frames.append([n_songs, sil_start, sil_amount])
-        return sil_frames
+        if sil_amount > self.sil_len:
+            sil_frames.append([n_sil, sil_start, sil_amount])
+            n_sil += 1
+        return ProcessSilence(sil_frames)
+
+    def ProcessSilence(sil_seq):
+        # to do
 
     def ApplyMedianFilter(self, frames):
         median_window = int(self.music_window / self.frame_window)
