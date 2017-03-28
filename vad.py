@@ -73,30 +73,32 @@ class VAD(object):
         frames = frames.reshape(len(frames) / 2, 2)
         print frames
         frames = self.ApplyMedianFilter(frames)
-        return self.DetectSilence(frames)
+        return self.DetectSongs(frames)
 
-    def DetectSilence(self, frames):
+    def DetectSongs(self, frames):
         sil_start = 0
         sil_amount = 0
         sil_frames = []
+        n_songs = 0
         print 'Frames shape', frames.shape
         for f in frames:
             # print 'Sil start', sil_start, 'Sil amount', sil_amount
             # raw_input()
             if f[1] < self.thr:
-                print 'Under threshold', f
+                # print 'Under threshold', f
                 if sil_start == 0:
                     sil_start = f[0] / self.bitrate
                 else:
                     sil_amount += self.frame_overlap
             else:
                 if sil_amount > self.sil_len:
-                    sil_frames.append([sil_start, sil_amount])
+                    sil_frames.append([n_songs, sil_start, sil_amount])
+                    n_songs += 1
                 sil_start = 0
                 sil_amount = 0
         # Check if there was silence at the end
-        if sil_amount > self.sil_len:
-            sil_frames.append([sil_start, sil_amount])
+        if sil_amount > self.sil_len and n_songs > 0:
+            sil_frames.append([n_songs, sil_start, sil_amount])
         return sil_frames
 
     def ApplyMedianFilter(self, frames):

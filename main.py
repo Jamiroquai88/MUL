@@ -65,13 +65,15 @@ class MyForm(QtGui.QMainWindow):
         level = self.ui.levelBox.value()
         length = self.ui.lengthBox.value()
         if level > 0 and length > 0 and self.inputFile is not None:
-            sil_det = self.vad.ProcessFile(self.inputFile, level, length)
-            if sil_det is None:
+            songs_list = self.vad.ProcessFile(self.inputFile, level, length)
+            print 'Songs:', songs_list
+            if songs_list is None:
                 self.ShowInformationDialog('Can not process input file!')
+            elif songs_list == []:
+                self.ShowInformationDialog('No songs found in input wav file!')
             else:
-                print sil_det
                 header = ['Number', 'Start', 'End']
-                table_model = MyTableModel(sil_det, header, self)
+                table_model = MyTableModel(songs_list, header, self)
                 self.ui.tableView.setModel(table_model)
         else:
             self.ShowInformationDialog(
