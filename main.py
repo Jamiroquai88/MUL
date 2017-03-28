@@ -7,6 +7,31 @@ from main_window import Ui_MusicSplitter
 from vad import VAD
 
 
+class MyTableModel(QtCore.QAbstractTableModel):
+    def __init__(self, datain, headerdata, parent=None, *args):
+        QtCore.QAbstractTableModel.__init__(self, parent, *args)
+        self.arraydata = datain
+        self.headerdata = headerdata
+
+    def rowCount(self, parent):
+        return len(self.arraydata)
+
+    def columnCount(self, parent):
+        return len(self.arraydata[0])
+
+    def data(self, index, role):
+        if not index.isValid():
+            return QtCore.QVariant()
+        elif role != QtCore.Qt.DisplayRole:
+            return QtCore.QVariant()
+        return QtCore.QVariant(self.arraydata[index.row()][index.column()])
+
+    def headerData(self, col, o, role):
+        if o == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
+            return QtCore.QVariant(self.headerdata[col])
+        return QtCore.QVariant()
+
+
 class MyForm(QtGui.QMainWindow):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
@@ -40,8 +65,14 @@ class MyForm(QtGui.QMainWindow):
         level = self.ui.levelBox.value()
         length = self.ui.lengthBox.value()
         if level > 0 and length > 0 and self.inputFile is not None:
-            if self.vad.ProcessFile(self.inputFile, level, length) is None:
+            sil_det = self.vad.ProcessFile(self.inputFile, level, length)
+            if sil_det is None:
                 self.ShowInformationDialog('Can not process input file!')
+            else:
+                print sil_det
+                header = ['Number', 'Start', 'End']
+                table_model = MyTableModel(sil_det, header, self)
+                self.ui.tableView.setModel(table_model)
         else:
             self.ShowInformationDialog(
                 'Please, set input file and appropriate level and length.')

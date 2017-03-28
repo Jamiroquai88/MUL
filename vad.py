@@ -21,11 +21,11 @@ class VAD(object):
         self.data = None
         self.thr = None
         self.sil_len = None
-        self.sample_window = 0.02
-        self.sample_overlap = 0.01
-        self.speech_window = 0.5
-        self.speech_start_band = 300
-        self.speech_end_band = 3000
+        self.frame_window = 0.02
+        self.frame_overlap = 0.01
+        self.music_window = 0.5
+        self.music_start_band = 50
+        self.music_end_band = 3000
 
     def ProcessFile(self, input_file, threshold, silence_len):
         ''' Process one wav file.
@@ -47,43 +47,87 @@ class VAD(object):
         self.inputFile = input_file
         self.thr = threshold
         self.sil_len = silence_len
-        detected_sil = np.array([])
-        sample_window = int(self.bitrate * self.sample_window)
-        sample_overlap = int(self.bitrate * self.sample_overlap)
+        frame_window = int(self.bitrate * self.frame_window)
+        frame_overlap = int(self.bitrate * self.frame_overlap)
         data = self.data
-        sample_start = 0
-        start_band = self.speech_start_band
-        end_band = self.speech_end_band
+        frame_start = 0
+        start_band = self.music_start_band
+        end_band = self.music_end_band
         data_len = len(data)
-        while sample_start < (data_len - sample_window):
-            sample_end = sample_start + sample_window
-            if sample_end >= data_len:
-                sample_end = data_len - 1
-            data_window = data[sample_start:sample_end]
+        frames = []
+        while frame_start < (data_len - frame_window):
+            frame_end = frame_start + frame_window
+            if frame_end >= data_len:
+                frame_end = data_len - 1
+            data_window = data[frame_start:frame_end]
             norm_ene = self.GetNormalizedEnergy(data_window)
             sum_voice_energy = VAD.ComputeBandEnergy(
                 norm_ene, start_band, end_band)
             sum_full_energy = sum(norm_ene.values())
             speech_ratio = sum_voice_energy / sum_full_energy
-            if speech_ratio < self.thr:
-                detected_sil = np.append(
-                    detected_sil, [sample_start, sample_end])
-            sample_start += sample_overlap
-        print detected_sil
-        detected_sil = detected_sil.reshape(len(detected_sil) / 2, 2)
-        print detected_sil
-        # detected_windows[:,1] = self._smooth_speech_detection(detected_windows)
-        # return detected_windows
+            # print [frame_start, speech_ratio]
+            # raw_input()
+            frames = np.append(
+                frames, [[frame_start, speech_ratio]])
+            frame_start += frame_overlap
+        frames = frames.reshape(len(frames) / 2, 2)
+        print frames
+        frames = self.ApplyMedianFilter(frames)
+        return self.DetectSilence(frames)
+
+    def DetectSilence(self, frames):
+        sil_start = 0
+        sil_amount = 0
+        sil_frames = []
+        print 'Frames shape', frames.shape
+        for f in frames:
+            # print 'Sil start', sil_start, 'Sil amount', sil_amount
+            # raw_input()
+            if f[1] < self.thr:
+                print 'Under threshold', f
+                if sil_start == 0:
+                    sil_start = f[0] / self.bitrate
+                else:
+                    sil_amount += self.frame_overlap
+            else:
+                if sil_amount > self.sil_len:
+                    sil_frames.append([sil_start, sil_amount])
+                sil_start = 0
+                sil_amount = 0
+        # Check if there was silence at the end
+        if sil_amount > self.sil_len:
+            sil_frames.append([sil_start, sil_amount])
+        return sil_frames
+
+    def ApplyMedianFilter(self, frames):
+        median_window = int(self.music_window / self.frame_window)
+        if median_window % 2 == 0:
+            median_window = median_window - 1
+        frames[:, 1] = VAD.MedianFilter(frames[:, 1], median_window)
+        print 'After median filter\n', frames
+        return frames
 
     def GetNormalizedEnergy(self, audio_data):
         data_freq = VAD.ComputeFrequencies(audio_data, self.bitrate)
         data_energy = VAD.ComputeEnergy(audio_data)
-        print data_freq.shape, data_energy.shape
         energy_freq = dict()
         for (i, freq) in enumerate(data_freq):
             if abs(freq) not in energy_freq:
                 energy_freq[abs(freq)] = data_energy[i] * 2
         return energy_freq
+
+    @staticmethod
+    def MedianFilter(x, k):
+        k2 = (k - 1) // 2
+        y = np.zeros((len(x), k), dtype=x.dtype)
+        y[:, k2] = x
+        for i in range(k2):
+            j = k2 - i
+            y[j:, i] = x[:-j]
+            y[:j, i] = x[0]
+            y[:-j, -(i + 1)] = x[j:]
+            y[-j:, -(i + 1)] = x[-1]
+        return np.median(y, axis=1)
 
     @staticmethod
     def ComputeFrequencies(audio_data, bitrate):
@@ -100,4 +144,3 @@ class VAD(object):
             if start < key < end:
                 sum_energy += freq[key]
         return sum_energy
-
