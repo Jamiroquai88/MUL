@@ -1,7 +1,11 @@
 import time
+import multiprocessing
+from joblib import Parallel, delayed
 import numpy as np
 import scipy.io.wavfile as wf
 
+
+# def ProcessFilePart():
 
 class VAD(object):
     ''' Voice activity detector.
@@ -21,12 +25,14 @@ class VAD(object):
         self.bitrate = None
         self.data = None
         self.thr = None
+        self.length = None
         self.sil_len = None
         self.frame_window = 0.02
         self.frame_overlap = 0.01
         self.music_window = 0.5
         self.music_start_band = 50
         self.music_end_band = 3000
+        self.min_song_len = 10
 
     def ProcessFile(self, input_file, threshold, silence_len):
         ''' Process one wav file.
@@ -47,25 +53,24 @@ class VAD(object):
         print self.bitrate, self.data.shape, self.channels
         self.inputFile = input_file
         self.thr = threshold
+        self.length = self.data.shape[0] / self.bitrate
+        print self.length
         self.sil_len = silence_len
         frame_window = int(self.bitrate * self.frame_window)
         frame_overlap = int(self.bitrate * self.frame_overlap)
-        # print self.data[:, 0]
-        # print self.data[:, 1]
-        # return
         if self.channels == 1:
             data = self.data - np.mean(self.data)
         else:
             data = np.ndarray(self.data.shape)
             for ch in range(self.channels):
-                # print self.data[:, ch] - np.mean(self.data[:, ch])
                 data[:, ch] = self.data[:, ch] - np.mean(self.data[:, ch])
-                # print data
         frame_start = 0
         start_band = self.music_start_band
         end_band = self.music_end_band
         data_len = len(data)
         frames = []
+        # num_cores = multiprocessing.cpu_count()
+        # results = Parallel(n_jobs=num_cores)(delayed(ProcessFilePart)
         while frame_start < (data_len - frame_window):
             frame_end = frame_start + frame_window
             if frame_end >= data_len:
@@ -86,7 +91,7 @@ class VAD(object):
             # time.sleep(0.1)
             # raw_input()
             frames = np.append(
-                frames, [[frame_start, max(speech_ratio)]])
+                frames, [frame_start, np.max(speech_ratio)])
             frame_start += frame_overlap
         frames = frames.reshape(len(frames) / 2, 2)
         print frames
@@ -118,12 +123,26 @@ class VAD(object):
         if sil_amount > self.sil_len:
             sil_frames.append([n_sil, sil_start, sil_amount])
             n_sil += 1
-        return VAD.ProcessSilence(sil_frames)
+        return VAD.ProcessSilence(sil_frames, self.min_song_len)
 
     @staticmethod
-    def ProcessSilence(sil_seq):
+    def ProcessSilence(sil_seq, min_song_len):
         # to do
         print sil_seq
+        songs_list = []
+        k = 1
+        start = 0
+        for i in range(len(sil_seq)):
+            raw_input()
+            sil_start = sil_seq[i][1]
+            sil_len = sil_seq[i][2]
+            print start, sil_start, sil_len
+            if sil_start - start > min_song_len:
+                songs_list.append([k, start, sil_start])
+                k += 1
+            start = sil_start + sil_len
+            print 'Songs:', songs_list
+
         return
 
     def ApplyMedianFilter(self, frames):
