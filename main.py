@@ -35,15 +35,17 @@ class MyTableModel(QtCore.QAbstractTableModel):
 class MyForm(QtGui.QMainWindow):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
+        # VAD class
+        self.vad = VAD()
+        threshold = 0.4
+        length = 5
         # UI setup
         self.ui = Ui_MusicSplitter()
         self.ui.setupUi(self)
         self.ui.browseButton.clicked.connect(self.HandleBrowseButton)
         self.ui.processButton.clicked.connect(self.HandleProcessButton)
-        self.ui.levelBox.setValue(0.6)
-        self.ui.lengthBox.setValue(5)
-        # VAD class
-        self.vad = VAD()
+        self.ui.levelBox.setValue(threshold)
+        self.ui.lengthBox.setValue(length)
         # Class members
         self.inputFile = None
 
