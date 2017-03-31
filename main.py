@@ -46,8 +46,18 @@ class MyForm(QtGui.QMainWindow):
         self.ui.processButton.clicked.connect(self.HandleProcessButton)
         self.ui.levelBox.setValue(threshold)
         self.ui.lengthBox.setValue(length)
+        self.ui.tableView.resizeColumnsToContents()
+        self.ui.tableView.setSelectionBehavior(QtGui.QTableView.SelectRows);
+        self.ui.tableView.clicked.connect(self.HandleTableClicked)
+        self.ui.tableView.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         # Class members
         self.inputFile = None
+
+    def HandleTableClicked(self, clickedIndex):
+        ''' Handle clicked table.
+
+        '''
+        print clickedIndex.row()
 
     def HandleBrowseButton(self):
         ''' Handle browse button, select input wav file and open it.
@@ -74,7 +84,7 @@ class MyForm(QtGui.QMainWindow):
             elif songs_list == []:
                 self.ShowInformationDialog('No songs found in input wav file!')
             else:
-                header = ['Number', 'Start', 'End']
+                header = ['Number', 'Name', 'Start', 'End']
                 table_model = MyTableModel(songs_list, header, self)
                 self.ui.tableView.setModel(table_model)
         else:

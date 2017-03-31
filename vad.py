@@ -1,5 +1,7 @@
 import time
 import multiprocessing
+import os
+import datetime
 from joblib import Parallel, delayed
 import numpy as np
 import scipy.io.wavfile as wf
@@ -51,7 +53,7 @@ class VAD(object):
             return None
         self.channels = len(self.data.shape)
         print self.bitrate, self.data.shape, self.channels
-        self.inputFile = input_file
+        self.inputFile = str(input_file)
         self.thr = threshold
         self.length = self.data.shape[0] / self.bitrate
         print self.length
@@ -123,27 +125,29 @@ class VAD(object):
         if sil_amount > self.sil_len:
             sil_frames.append([n_sil, sil_start, sil_amount])
             n_sil += 1
-        return VAD.ProcessSilence(sil_frames, self.min_song_len)
+        return VAD.ProcessSilence(
+            sil_frames, self.min_song_len, os.path.basename(self.inputFile))
 
     @staticmethod
-    def ProcessSilence(sil_seq, min_song_len):
+    def ProcessSilence(sil_seq, min_song_len, f):
         # to do
         print sil_seq
         songs_list = []
         k = 1
         start = 0
         for i in range(len(sil_seq)):
-            raw_input()
+            # raw_input()
             sil_start = sil_seq[i][1]
             sil_len = sil_seq[i][2]
             print start, sil_start, sil_len
             if sil_start - start > min_song_len:
-                songs_list.append([k, start, sil_start])
+                songs_list.append([k, f.replace('.wav', '_' + str(k) + '.wav'),
+                                   str(datetime.timedelta(seconds=int(start))),
+                                   str(datetime.timedelta(seconds=int(sil_start)))])
                 k += 1
             start = sil_start + sil_len
-            print 'Songs:', songs_list
-
-        return
+            # print 'Songs:', songs_list
+        return songs_list
 
     def ApplyMedianFilter(self, frames):
         median_window = int(self.music_window / self.frame_window)
