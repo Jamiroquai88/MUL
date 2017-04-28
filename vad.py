@@ -32,9 +32,6 @@ class VAD(object):
         self.frame_window = 0.02
         self.frame_overlap = 0.01
         self.music_window = 0.5
-        self.music_start_band = 50
-        self.music_end_band = 3000
-        self.min_song_len = 10
 
     def ProcessFile(self, input_file, threshold, silence_len):
         ''' Process one wav file.

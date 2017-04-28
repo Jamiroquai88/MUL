@@ -39,6 +39,12 @@ class MyForm(QtGui.QMainWindow):
         self.vad = VAD()
         threshold = 0.4
         length = 5
+        bandStart = 50
+        self.vad.music_start_band = 50
+        bandEnd = 3000
+        self.vad.music_end_band = 3000
+        minSongLen = 10
+        self.vad.min_song_len = 10
         # UI setup
         self.ui = Ui_MusicSplitter()
         self.ui.setupUi(self)
@@ -46,6 +52,9 @@ class MyForm(QtGui.QMainWindow):
         self.ui.processButton.clicked.connect(self.HandleProcessButton)
         self.ui.levelBox.setValue(threshold)
         self.ui.lengthBox.setValue(length)
+        self.ui.bandStartBox.setValue(bandStart)
+        self.ui.bandEndBox.setValue(bandEnd)
+        self.ui.songLenBox.setValue(minSongLen)
         self.ui.tableView.resizeColumnsToContents()
         self.ui.tableView.setSelectionBehavior(QtGui.QTableView.SelectRows);
         self.ui.tableView.clicked.connect(self.HandleTableClicked)
@@ -77,6 +86,9 @@ class MyForm(QtGui.QMainWindow):
         level = self.ui.levelBox.value()
         length = self.ui.lengthBox.value()
         if level > 0 and length > 0 and self.inputFile is not None:
+            self.vad.music_start_band = self.ui.bandStartBox.value()
+            self.vad.music_end_band = self.ui.bandEndBox.value()
+            self.vad.min_song_len = self.ui.songLenBox.value()
             songs_list = self.vad.ProcessFile(self.inputFile, level, length)
             print 'Songs:', songs_list
             if songs_list is None:
