@@ -138,6 +138,9 @@ class Ui_MusicSplitter(object):
         self.tableView.setSizePolicy(sizePolicy)
         self.tableView.setObjectName(_fromUtf8("tableView"))
         self.verticalLayout_2.addWidget(self.tableView)
+        self.saveButton = QtGui.QPushButton(self.centralWidget)
+        self.saveButton.setObjectName(_fromUtf8("saveButton"))
+        self.verticalLayout_2.addWidget(self.saveButton)
         MusicSplitter.setCentralWidget(self.centralWidget)
 
         self.retranslateUi(MusicSplitter)
@@ -151,6 +154,7 @@ class Ui_MusicSplitter(object):
         self.label_5.setText(_translate("MusicSplitter", "Band start [Hz]", None))
         self.label_3.setText(_translate("MusicSplitter", "Band end [Hz]", None))
         self.label_6.setText(_translate("MusicSplitter", "Min. song length [s]", None))
-        self.browseButton.setText(_translate("MusicSplitter", "Browse file ...", None))
-        self.processButton.setText(_translate("MusicSplitter", "Process audio", None))
+        self.browseButton.setText(_translate("MusicSplitter", "Browse file", None))
+        self.processButton.setText(_translate("MusicSplitter", "Process file", None))
+        self.saveButton.setText(_translate("MusicSplitter", "Save all", None))
 

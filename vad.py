@@ -10,30 +10,25 @@ import scipy.io.wavfile as wf
 # def ProcessFilePart():
 
 class VAD(object):
-    ''' Voice activity detector.
+    """ Voice activity detector.
 
-    '''
+    """
     def __init__(self):
-        ''' Class constructor.
+        """ Class constructor.
 
-        '''
-        self.InitMembers()
-
-    def InitMembers(self):
-        ''' Re-init members.
-
-        '''
+        """
         self.inputFile = None
         self.bitrate = None
         self.data = None
         self.thr = None
         self.length = None
         self.sil_len = None
+        self.channels = None
         self.frame_window = 0.02
         self.frame_overlap = 0.01
         self.music_window = 0.5
 
-    def ProcessFile(self, input_file, threshold, silence_len):
+    def ProcessFile(self, input_file):
         ''' Process one wav file.
 
             :param input_file: path to input file
@@ -51,10 +46,8 @@ class VAD(object):
         self.channels = len(self.data.shape)
         print self.bitrate, self.data.shape, self.channels
         self.inputFile = str(input_file)
-        self.thr = threshold
         self.length = self.data.shape[0] / self.bitrate
         print self.length
-        self.sil_len = silence_len
         frame_window = int(self.bitrate * self.frame_window)
         frame_overlap = int(self.bitrate * self.frame_overlap)
         if self.channels == 1:
