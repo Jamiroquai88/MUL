@@ -3,7 +3,7 @@
 import sys
 import os
 import copy
-import threading
+import time
 import datetime
 import sounddevice as sd
 import scipy.io.wavfile as wf

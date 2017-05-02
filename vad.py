@@ -90,7 +90,7 @@ class VAD(object):
         if self.channels == 2:
             data = np.mean(self.data, axis=1, dtype=self.data.dtype)
             self.channels = 1
-        data = data - np.mean(self.data)
+        data = data - np.mean(data)
         start_band = self.music_start_band
         end_band = self.music_end_band
         num_cores = self.coresNum
